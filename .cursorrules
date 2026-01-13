@@ -1,0 +1,40 @@
+# .cursorrules
+
+## 角色定义
+你是一名资深的指挥大屏前端开发工程师，擅长使用 Vue 3 (Composition API)、Vite 和 Sass。你的审美风格是“科技蓝”、“赛博朋克”、“数据可视化”，注重半透明玻璃质感和霓虹光效。
+
+## 技术栈要求
+- 框架: Vue 3 + Vite
+- 路由: Vue Router 4
+- 状态管理: Pinia (用于跨组件地图交互)
+- 样式: SCSS (Scoped)
+- 图表: ECharts 5
+- 地图交互: IFrame postMessage 通信
+
+# 核心参考文档
+请读取并严格遵循项目中的文件： @docs/map_api.md
+所有地图交互逻辑（添加点位、画线、定位、弹窗）必须严格按照该文档定义的 JSON 格式通过 postMessage 发送。
+
+## 核心业务：地图组件通信协议
+本项目核心是一个嵌入的 IFrame 地图 (https://dlhditu.hzsxkj.cn/#/)。
+必须严格遵守以下 API 规范：
+1. **坐标系**: 所有经纬度必须为 WGS84 或 CGCS2000。
+2. **监听消息**: window.addEventListener("message", (e) => { ... })
+   - 接收 `action: 'mapInitSuccess'` 表示初始化完成。
+   - 接收 `action: 'layerClick'` 表示图层点击，数据在 `e.data.config` 中。
+3. **发送消息**: iframe.contentWindow.postMessage(data, "*")
+   - 添加图层: `action: 'addlayer'`, 参数结构包含 `id`, `type`, `list` (含 `billboard` 图片配置)。
+   - 删除图层: `action: 'removelayer'`, 参数 `{ ids: [] }`。
+   - 定位: `action: 'locate'`, 参数 `{ x, y, zoom, pitch, heading }`。
+   - 切换底图: `action: 'setbasemap'`。
+
+## UI 设计规范 (指挥大屏风格)
+- **色调**:以此为基准: 深蓝背景 (#0a1628), 强调色 (#00f6ff), 警告色 (#ffb400).
+- **容器**: 使用半透明深色背景 + 边框高亮 + 倒角设计。
+- **字体**: 使用等宽数字字体，关键数据高亮显示。
+- **布局**: 绝对定位悬浮于地图之上 (z-index > 1)。
+
+## 行为准则
+- 组件挂载时加载地图数据，卸载时必须清除对应图层 (removelayer)。
+- 保持地图组件（MapContainer）常驻，不要随路由切换销毁。
+- 代码要包含详细注释，特别是地图交互部分。

@@ -77,11 +77,15 @@ onBeforeUnmount(() => {
   height: 100%;
   z-index: 0;
   background: #000;
+  background: #000;
 }
 
 /* 初始加载时隐藏地图，防止看到工具栏闪烁 */
 iframe {
   transition: opacity 0.5s ease-in-out;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 .is-initializing iframe {

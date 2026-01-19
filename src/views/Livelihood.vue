@@ -4,29 +4,29 @@
     <div class="panel left-panel">
       <h2>民生服务</h2>
       <div class="control-group">
-        <!-- 文旅景点 -->
+        <!-- 文体场馆 -->
         <div class="layer-group">
             <div class="group-header">
                 <div class="header-left">
                     <label>
                         <input type="checkbox" v-model="showCulture" @change="updateLayers"> 
-                        <span class="group-title title-culture">文旅景点</span>
+                        <span class="group-title title-culture">文体场馆</span>
                     </label>
                 </div>
                 <span class="count">({{ culturePoints.length }})</span>
             </div>
         </div>
         
-        <!-- 体育场馆 -->
+        <!-- 教育机构 -->
         <div class="layer-group">
             <div class="group-header">
                 <div class="header-left">
                     <label>
-                        <input type="checkbox" v-model="showSports" @change="updateLayers"> 
-                        <span class="group-title title-sport">体育场馆</span>
+                        <input type="checkbox" v-model="showEducation" @change="updateLayers"> 
+                        <span class="group-title title-edu">教育机构</span>
                     </label>
                 </div>
-                <span class="count">({{ sportsPoints.length }})</span>
+                <span class="count">({{ educationPoints.length }})</span>
             </div>
         </div>
 
@@ -54,7 +54,7 @@
       <div class="panel-content">
           <div class="info-block">
               <img :src="selectedPoint.image" class="thumb-img" />
-              <p class="intro-text"><strong>简介：</strong>这里是德令哈市重要的{{ selectedPoint.type === 'culture' ? '文化' : '' }}活动场所，常年举办各类展览与讲座，深受市民喜爱。</p>
+              <p class="intro-text"><strong>简介：</strong>这里是德令哈市重要的{{ selectedPoint.type === 'culture' ? '文体' : '' }}活动场所，设施完善，服务优良。</p>
           </div>
           <div ref="chartRef" class="chart-container"></div>
       </div>
@@ -71,9 +71,9 @@
           <img :src="selectedPoint.image" alt="现场照片" />
         </div>
         <div class="card-info">
-          <p><strong>类型:</strong> {{ selectedPoint.type === 'sport' ? '体育场馆' : '医疗机构' }}</p>
+          <p><strong>类型:</strong> {{ getTypeName(selectedPoint.type) }}</p>
           <p><strong>开放时间:</strong> 09:00 - 18:00</p>
-          <p class="desc">简介: 本场所设施完善，服务优良，致力于为市民提供优质的{{ selectedPoint.type === 'sport' ? '健身' : '医疗' }}服务。</p>
+          <p class="desc">简介: {{ selectedPoint.desc || '该机构致力于为市民提供优质的公共服务，环境优美，设施齐全。' }}</p>
         </div>
       </div>
     </div>
@@ -84,7 +84,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { useMapStore } from '@/stores/mapStore'
-import { cultureIcon, sportIcon, medicalIcon } from '../utils/icons.js'
+import { cultureIcon, sportIcon, medicalIcon, educationIcon } from '../utils/icons.js'
 
 const mapStore = useMapStore()
 const chartRef = ref(null)
@@ -93,84 +93,80 @@ let chartInstance = null
 
 // UI 状态
 const showCulture = ref(true)
-const showSports = ref(true)
+const showEducation = ref(true)
 const showMedical = ref(true)
 
-const showChartPanel = ref(false) // 文旅点位 (右侧面板)
-const showInfoCard = ref(false)   // 体育/医疗点位 (中央卡片)
+const showChartPanel = ref(false) // 文体点位 (右侧面板)
+const showInfoCard = ref(false)   // 教育/医疗点位 (中央卡片)
 
 // 模拟数据
 const culturePoints = [
-  { id: 'cul_1', lat: 37.380, lng: 97.400, type: 'culture', name: '市文化馆', image: 'https://picsum.photos/400/300?random=cul1' },
-  { id: 'cul_2', lat: 37.390, lng: 97.410, type: 'culture', name: '图书馆', image: 'https://picsum.photos/400/300?random=cul2' }
+  { id: 'cul_1', lat: 37.370, lng: 97.370, type: 'culture', name: '市文化馆', image: 'https://picsum.photos/400/300?random=cul1' },
+  { id: 'cul_2', lat: 37.375, lng: 97.378, type: 'culture', name: '图书馆', image: 'https://picsum.photos/400/300?random=cul2' },
+  { id: 'cul_3', lat: 37.365, lng: 97.380, type: 'culture', name: '奥林匹克体育中心', image: 'https://picsum.photos/400/300?random=sport1' },
+  { id: 'cul_4', lat: 37.362, lng: 97.372, type: 'culture', name: '市民健身广场', image: 'https://picsum.photos/400/300?random=cul4' }
 ]
 
-const sportsPoints = [
-  { id: 'sport_1', lat: 37.375, lng: 97.395, type: 'sport', name: '奥林匹克体育中心', image: 'https://picsum.photos/400/300?random=sport1' },
-  { id: 'sport_2', lat: 37.365, lng: 97.385, type: 'sport', name: '全民健身馆', image: 'https://picsum.photos/400/300?random=sport2' }
+const educationPoints = [
+  { id: 'edu_1', lat: 37.368, lng: 97.365, type: 'education', name: '迪潽幼儿园', subType: '幼儿园', image: 'https://picsum.photos/400/300?random=edu1' },
+  { id: 'edu_2', lat: 37.372, lng: 97.362, type: 'education', name: '德令哈市第一小学', subType: '小学', image: 'https://picsum.photos/400/300?random=edu2' },
+  { id: 'edu_3', lat: 37.378, lng: 97.360, type: 'education', name: '德令哈高级中学', subType: '中学', image: 'https://picsum.photos/400/300?random=edu3' },
+  { id: 'edu_4', lat: 37.382, lng: 97.368, type: 'education', name: '柴达木职业技术学院', subType: '高等院校', image: 'https://picsum.photos/400/300?random=edu4' }
 ]
 
 const medicalPoints = [
-  { id: 'med_1', lat: 37.372, lng: 97.368, type: 'medical', name: '德令哈市人民医院', image: 'https://picsum.photos/400/300?random=med1' },
-  { id: 'med_2', lat: 37.382, lng: 97.375, type: 'medical', name: '中医院', image: 'https://picsum.photos/400/300?random=med2' },
-  { id: 'med_3', lat: 37.360, lng: 97.390, type: 'medical', name: '妇幼保健院', image: 'https://picsum.photos/400/300?random=med3' }
+  { id: 'med_1', lat: 37.366, lng: 97.358, type: 'medical', name: '德令哈市人民医院', image: 'https://picsum.photos/400/300?random=med1' },
+  { id: 'med_2', lat: 37.374, lng: 97.364, type: 'medical', name: '德令哈中心卫生院', image: 'https://picsum.photos/400/300?random=med2' },
+  { id: 'med_3', lat: 37.360, lng: 97.375, type: 'medical', name: '妇幼保健院', image: 'https://picsum.photos/400/300?random=med3' },
+  { id: 'med_4', lat: 37.355, lng: 97.368, type: 'medical', name: '河西街道社区卫生服务中心', image: 'https://picsum.photos/400/300?random=med4' }
 ]
 
 // 添加图层
 const updateLayers = () => {
-    mapStore.removeLayer(['layer_culture', 'layer_sport', 'layer_medical'])
+    mapStore.removeLayer(['layer_culture', 'layer_medical', 'layer_education'])
     
-    // 1. Culture
+    // 1. 文体场馆
     if (showCulture.value) {
         mapStore.addLayer({
             id: 'layer_culture',
             type: 'point',
-            infoWindow: false,
-            showInfoWindow: false,
-            pop: false,
             list: culturePoints.map(p => ({
                 x: p.lng,
                 y: p.lat,
                 name: p.name
             })),
             billboard: { image: cultureIcon, width: 40, height: 40 },
-            font: { fontSize: 14, color: '#fff', outlineWidth: 2, outlineColor: '#000', backgroundColor: 'transparent', pixelOffset: { x: 0, y: -25 } }
+            font: { fontSize: 14, color: '#fff', outlineWidth: 2, outlineColor: '#000', pixelOffset: { x: 0, y: -25 } }
         }, culturePoints)
     }
 
-    // 2. 体育
-    if (showSports.value) {
+    // 2. 教育机构
+    if (showEducation.value) {
         mapStore.addLayer({
-            id: 'layer_sport',
+            id: 'layer_education',
             type: 'point',
-            infoWindow: false,
-            showInfoWindow: false,
-            pop: false,
-            list: sportsPoints.map(p => ({
+            list: educationPoints.map(p => ({
                 x: p.lng,
                 y: p.lat,
                 name: p.name
             })),
-            billboard: { image: sportIcon, width: 40, height: 40 },
-            font: { fontSize: 14, color: '#fff', outlineWidth: 2, outlineColor: '#000', backgroundColor: 'transparent', pixelOffset: { x: 0, y: -25 } }
-        }, sportsPoints)
+            billboard: { image: educationIcon, width: 40, height: 40 },
+            font: { fontSize: 14, color: '#fff', outlineWidth: 2, outlineColor: '#000', pixelOffset: { x: 0, y: -25 } }
+        }, educationPoints)
     }
 
-    // 3. 医疗
+    // 3. 医疗机构
     if (showMedical.value) {
         mapStore.addLayer({
             id: 'layer_medical',
             type: 'point',
-            infoWindow: false,
-            showInfoWindow: false,
-            pop: false,
             list: medicalPoints.map(p => ({
                 x: p.lng,
                 y: p.lat,
                 name: p.name
             })),
             billboard: { image: medicalIcon, width: 40, height: 40 },
-            font: { fontSize: 14, color: '#fff', outlineWidth: 2, outlineColor: '#000', backgroundColor: 'transparent', pixelOffset: { x: 0, y: -25 } }
+            font: { fontSize: 14, color: '#fff', outlineWidth: 2, outlineColor: '#000', pixelOffset: { x: 0, y: -25 } }
         }, medicalPoints)
     }
 }
@@ -188,7 +184,7 @@ watch(() => mapStore.selectedObject, (newVal) => {
             showChartPanel.value = true
             nextTick(() => { initChart() })
         } 
-        else if (newVal.type === 'sport' || newVal.type === 'medical') {
+        else if (newVal.type === 'education' || newVal.type === 'medical') {
             showChartPanel.value = false
             showInfoCard.value = true
         }
@@ -250,6 +246,14 @@ onMounted(() => {
         })
     }
 })
+
+const getTypeName = (type) => {
+    switch(type) {
+        case 'education': return selectedPoint.value.subType || '教育机构'
+        case 'medical': return '医疗机构'
+        default: return '公共设施'
+    }
+}
 
 onUnmounted(() => {
     mapStore.clearAllLayers()
@@ -316,7 +320,7 @@ onUnmounted(() => {
     font-weight: bold;
 }
 .title-culture { color: #ffca28; }
-.title-sport { color: #e67e22; }
+.title-edu { color: #4facfe; }
 .title-medical { color: #ff4757; }
 
 .count {

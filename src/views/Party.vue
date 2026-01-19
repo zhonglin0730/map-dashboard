@@ -9,10 +9,32 @@
                 <div class="header-left">
                     <label>
                         <input type="checkbox" v-model="showParty" @change="updateLayers"> 
-                        <span class="group-title">示范支部</span>
+                        <span class="group-title title-branch">示范支部</span>
                     </label>
                 </div>
                 <span class="count">({{ partyPoints.length }})</span>
+            </div>
+        </div>
+        <div class="layer-group">
+            <div class="group-header">
+                <div class="header-left">
+                    <label>
+                        <input type="checkbox" v-model="showCenters" @change="updateLayers"> 
+                        <span class="group-title title-center">党群中心</span>
+                    </label>
+                </div>
+                <span class="count">({{ centerPoints.length }})</span>
+            </div>
+        </div>
+        <div class="layer-group">
+            <div class="group-header">
+                <div class="header-left">
+                    <label>
+                        <input type="checkbox" v-model="showSites" @change="updateLayers"> 
+                        <span class="group-title title-site">红色阵地</span>
+                    </label>
+                </div>
+                <span class="count">({{ sitePoints.length }})</span>
             </div>
         </div>
       </div>
@@ -29,10 +51,20 @@
           <img :src="selectedPoint.image" alt="阵地照片" />
         </div>
         <div class="card-info">
-          <p><strong>党部书记:</strong> {{ selectedPoint.secretary }}</p>
-          <p><strong>党员人数:</strong> {{ selectedPoint.members }} 人</p>
+          <template v-if="selectedPoint.category === 'site'">
+            <p><strong>地点类别:</strong> 红色教育基地</p>
+            <p><strong>开放时间:</strong> 09:00 - 17:30</p>
+          </template>
+          <template v-else-if="selectedPoint.category === 'center'">
+            <p><strong>中心主任:</strong> {{ selectedPoint.secretary }}</p>
+            <p><strong>服务人数:</strong> 覆盖周边社区</p>
+          </template>
+          <template v-else>
+            <p><strong>党部书记:</strong> {{ selectedPoint.secretary }}</p>
+            <p><strong>党员人数:</strong> {{ selectedPoint.members }} 人</p>
+          </template>
           <p><strong>联系方式:</strong> 138****8888</p>
-          <p class="desc">简介: 该党支部坚持以党建促发展，积极开展各类先锋模范活动。</p>
+          <p class="desc">简介: {{ selectedPoint.category === 'site' ? '传承红色基因，弘扬革命精神。' : '该党组织坚持以党建促发展，积极开展各类先锋模范活动。' }}</p>
         </div>
       </div>
     </div>
@@ -48,52 +80,56 @@ const mapStore = useMapStore()
 const showCard = ref(false)
 const selectedPoint = ref({})
 const showParty = ref(true)
+const showCenters = ref(true)
+const showSites = ref(true)
 
 const partyPoints = [
-  {
-    id: 'party_1',
-    lat: 37.368,
-    lng: 97.365,
-    type: 'party',
-    name: '德令哈社区党支部',
-    secretary: '张书记',
-    members: 45,
-    address: '格尔木路12号',
-    image: 'https://picsum.photos/400/300?random=party1'
-  },
-  {
-    id: 'party_2',
-    lat: 37.375,
-    lng: 97.382,
-    type: 'party',
-    name: '河西街道党工委',
-    secretary: '王主任',
-    members: 78,
-    address: '滨河路55号',
-    image: 'https://picsum.photos/400/300?random=party2'
-  }
+  { id: 'branch_1', lat: 37.368, lng: 97.360, type: 'party', name: '德令哈社区党支部', secretary: '张书记', members: 45, address: '格尔木路12号', image: 'https://picsum.photos/400/300?random=party1' },
+  { id: 'branch_2', lat: 37.375, lng: 97.362, type: 'party', name: '河西街道党工委', secretary: '王主任', members: 78, address: '滨河路55号', image: 'https://picsum.photos/400/300?random=party2' },
+  { id: 'branch_3', lat: 37.362, lng: 97.355, type: 'party', name: '火车站街道党工委', secretary: '刘书记', members: 62, address: '站前路08号', image: 'https://picsum.photos/400/300?random=party3' }
 ]
 
+const centerPoints = [
+  { id: 'center_1', lat: 37.371, lng: 97.368, type: 'party', name: '市党群服务中心', secretary: '李部长', members: 120, address: '中心广场西侧', image: 'https://picsum.photos/400/300?random=party4', category: 'center' },
+  { id: 'center_2', lat: 37.358, lng: 97.364, type: 'party', name: '昆仑路党群服务站', secretary: '赵书记', members: 55, address: '昆仑路33号', image: 'https://picsum.photos/400/300?random=party5', category: 'center' }
+]
+
+const sitePoints = [
+  { id: 'site_1', lat: 37.380, lng: 97.350, type: 'party', name: '革命烈士陵园', secretary: '讲解员', members: 0, address: '陵园路', image: 'https://picsum.photos/400/300?random=party6', category: 'site' },
+  { id: 'site_2', lat: 37.372, lng: 97.385, type: 'party', name: '红旗渠纪念馆', secretary: '讲解员', members: 0, address: '滨河路东段', image: 'https://picsum.photos/400/300?random=party7', category: 'site' }
+]
 
 const updateLayers = () => {
-    mapStore.removeLayer(['party_layer'])
+    mapStore.removeLayer(['branch_layer', 'center_layer', 'site_layer'])
 
     if (showParty.value) {
         mapStore.addLayer({
-            id: 'party_layer',
+            id: 'branch_layer',
             type: 'point',
-            infoWindow: false,
-            showInfoWindow: false,
-            pop: false,
-            list: partyPoints.map(p => ({
-                x: p.lng,
-                y: p.lat,
-                name: p.name
-            })),
-            point: { size: 10, color: '#e74c3c' },
-            billboard: { image: partyIcon, width: 40, height: 40 },
-            font: { fontSize: 12, color: '#fff', outlineWidth: 2, outlineColor: '#000', backgroundColor: 'transparent', pixelOffset: { x: 0, y: -20 } }
+            list: partyPoints.map(p => ({ x: p.lng, y: p.lat, name: p.name })),
+            billboard: { image: partyIcon, width: 36, height: 36 },
+            font: { fontSize: 12, color: '#fff', outlineWidth: 2, outlineColor: '#000', pixelOffset: { x: 0, y: -20 } }
         }, partyPoints)
+    }
+
+    if (showCenters.value) {
+        mapStore.addLayer({
+            id: 'center_layer',
+            type: 'point',
+            list: centerPoints.map(p => ({ x: p.lng, y: p.lat, name: p.name })),
+            billboard: { image: partyIcon, width: 44, height: 44 }, // 中心略大
+            font: { fontSize: 13, color: '#fff', outlineWidth: 2, outlineColor: '#000', pixelOffset: { x: 0, y: -25 } }
+        }, centerPoints)
+    }
+
+    if (showSites.value) {
+        mapStore.addLayer({
+            id: 'site_layer',
+            type: 'point',
+            list: sitePoints.map(p => ({ x: p.lng, y: p.lat, name: p.name })),
+            billboard: { image: partyIcon, width: 40, height: 40 },
+            font: { fontSize: 12, color: '#fff', outlineWidth: 2, outlineColor: '#000', pixelOffset: { x: 0, y: -22 } }
+        }, sitePoints)
     }
 }
 
@@ -179,8 +215,8 @@ onUnmounted(() => {
 
 .group-title {
     font-weight: bold;
-    color: #ff5252; /* 智慧党建页面的主题色 */
 }
+.title-branch, .title-center, .title-site { color: #ff5252; }
 
 .count {
     color: #aaa;

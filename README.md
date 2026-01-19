@@ -56,6 +56,3 @@ npm run build
 ## 📝 开发规范
 -   **地图指令**: 建议通过 `useMapStore().sendAction(action, config)` 统一发送。
 -   **图层维护**: 利用 `mapStore` 的图层注册表进行生命周期管理，确保在离开视图时及时清除图层。
-
----
-*本项目由 Antigravity 协助开发与维护。*

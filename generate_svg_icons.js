@@ -145,7 +145,20 @@ const medicalSVG = createSVG(`
     </linearGradient>
 `);
 
-// 11. Notice Icons (Reported Events) - Status Specific
+// 11. Education (Livelihood) - Graduation Cap / Book
+const educationSVG = createSVG(`
+  <circle cx="32" cy="32" r="28" fill="url(#eduGrad)" filter="url(#shadow)" stroke="#fff" stroke-width="2"/>
+  <path d="M32 18L12 28L32 38L52 28L32 18Z" fill="white"/>
+  <path d="M16 30V40C16 40 24 44 32 44C40 44 48 40 48 40V30" stroke="white" stroke-width="2" fill="none"/>
+  <path d="M52 28V42" stroke="white" stroke-width="2"/>
+`, `
+    <linearGradient id="eduGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4facfe"/>
+      <stop offset="100%" stop-color="#00f2fe"/>
+    </linearGradient>
+`);
+
+// 12. Notice Icons (Reported Events) - Status Specific
 const createNoticeSVG = (color1, color2) => createSVG(`
     <path d="M32 8L5 54H59L32 8Z" fill="url(#noticeGrad_${color1.replace('#', '')})" stroke="white" stroke-width="2" stroke-linejoin="round"/>
     <rect x="30" y="24" width="4" height="16" rx="2" fill="white"/>
@@ -172,6 +185,7 @@ const icons = {
     bridgeIcon: bridgeSVG,
     sportIcon: sportSVG,
     medicalIcon: medicalSVG,
+    educationIcon: educationSVG,
     noticePending: noticeRedSVG,
     noticeProcessing: noticeOrangeSVG,
     noticeCompleted: noticeGreenSVG
